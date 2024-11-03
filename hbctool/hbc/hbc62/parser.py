@@ -11,7 +11,8 @@ BYTECODE_ALIGNMENT = 4
 INVALID_OFFSET = (1 << 23)
 INVALID_LENGTH = (1 << 8) - 1
 
-structure = json.load(open(f"{basepath}/data/structure.json", "r"))
+with open(basepath / "data" / "structure.json", "r") as f:
+    structure = json.load(f)
 
 headerS = structure["header"]
 smallFunctionHeaderS = structure["SmallFuncHeader"]
@@ -64,19 +65,13 @@ def parse(f):
 
     # Segment 3: StringKind
     # FIXME : Do nothing just skip
-    stringKinds = []
-    for _ in range(header["stringKindCount"]):
-        stringKinds.append(readuint(f, bits=32))
-
+    stringKinds = [readuint(f, bits=32) for _ in range(header["stringKindCount"])]
     obj["stringKinds"] = stringKinds
     align(f)
 
     # Segment 3: IdentifierHash
     # FIXME : Do nothing just skip
-    identifierTranslations = []
-    for _ in range(header["identifierCount"]):
-        identifierTranslations.append(readuint(f, bits=32))
-    
+    identifierTranslations = [readuint(f, bits=32) for _ in range(header["identifierCount"])]
     obj["identifierTranslations"] = identifierTranslations
     align(f)
 

@@ -17,14 +17,11 @@ operand_type = {
     "Double": (8, to_double, from_double)
 }
 
-f = open(f"{basepath}/data/opcode.json", "r")
-opcode_operand = json.load(f)
+with open(basepath / "data" / "opcode.json", "r") as f:
+    opcode_operand = json.load(f)
+    
 opcode_mapper = list(opcode_operand.keys())
-opcode_mapper_inv = {}
-for i, v in enumerate(opcode_mapper):
-    opcode_mapper_inv[v] = i
-
-f.close()
+opcode_mapper_inv = {v: i for i, v in enumerate(opcode_mapper)}
 
 def disassemble(bc):
     i = 0

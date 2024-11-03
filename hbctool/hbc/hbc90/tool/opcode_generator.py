@@ -1,13 +1,13 @@
 import pathlib
 import re
 import json
+import os
 
 basepath = pathlib.Path(__file__).parent.absolute()
 
 # Open file
-bytecodeListFile = open(f"{basepath}/../raw/BytecodeList.def", "r")
-lines = bytecodeListFile.readlines()
-bytecodeListFile.close()
+with open(basepath / "raw" / "BytecodeList.def", "r") as bytecode_list_file:
+    lines = bytecode_list_file.readlines()
 
 # Init constants
 jmp_operand = {
@@ -87,6 +87,5 @@ for line in lines:
         print(line_num, line)
 
 # Write json to file
-f = open(f"{basepath}/../data/opcode.json", "w")
-json.dump(json_op, f, indent=4)
-f.close()
+with open(basepath / ".." / "data" / "opcode.json", "w") as f:
+    json.dump(json_op, f, indent=4)

@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import re
+from pathlib import Path
 
 def write_func(f, func, i, hbc):
     functionName, paramCount, registerCount, symbolCount, insts, _ = func
@@ -41,10 +42,10 @@ def dump(hbc, path, force=False):
     
     shutil.rmtree(path, ignore_errors=True)
     os.makedirs(path)
+    
     # Write all obj to metadata.json
-    f = open(f"{path}/metadata.json", "w")
-    json.dump(hbc.getObj(), f)
-    f.close()
+    with open(path / "metadata.json", "w") as f:
+        json.dump(hbc.getObj(), f)
     
     stringCount = hbc.getStringCount()
     functionCount = hbc.getFunctionCount()
@@ -58,14 +59,12 @@ def dump(hbc, path, force=False):
             "value": val
         })
     
-    f = open(f"{path}/string.json", "w")
-    json.dump(ss, f, indent=4)
-    f.close()
+    with open(path / "string.json", "w") as f:
+        json.dump(ss, f, indent=4)
 
-    f = open(f"{path}/instruction.hasm", "w")
-    for i in range(functionCount):
-        write_func(f, hbc.getFunction(i), i, hbc)
-    f.close()
+    with open(path / "instruction.hasm", "w") as f:
+        for i in range(functionCount):
+            write_func(f, hbc.getFunction(i), i, hbc)
 
 def read_all_func(hasm, hbc):
     func_asms = [func_asm + "EndFunction" for func_asm in hasm.split("EndFunction\n\n")[:-1]]
@@ -129,31 +128,29 @@ def read_func(func_asms, i):
 
 
 def load(path):
-    assert os.path.exists(path), f"{path} does not exists."
-    assert os.path.exists(f"{path}/metadata.json"), f"metadata.json not found."
-    assert os.path.exists(f"{path}/string.json"), f"string.json not found."
-    assert os.path.exists(f"{path}/instruction.hasm"), f"instruction.hasm not found."
+    path = Path(path)
 
-    f = open(f"{path}/metadata.json", "r")
-    hbc = hbcl.loado(json.load(f))
-    f.close()
+    assert path.exists(), f"{path} does not exist."
+    assert (path / "metadata.json").exists(), f"metadata.json not found."
+    assert (path / "string.json").exists(), f"string.json not found."
+    assert (path / "instruction.hasm").exists(), f"instruction.hasm not found."
 
-    f = open(f"{path}/instruction.hasm", "r")
-    hasm_content = f.read()
-    f.close()
+    with open(path / "metadata.json", "r") as f:
+        hbc = hbcl.loado(json.load(f))
 
-    f = open(f"{path}/string.json", "r")
-    strings = json.load(f)
-    f.close()
+    with open(path / "instruction.hasm", "r") as f:
+        hasm_content = f.read()
+
+    with open(path / "string.json", "r") as f:
+        strings = json.load(f)
 
     for string in strings:
         hbc.setString(string["id"], string["value"])
-  
+
     func_asms = read_all_func(hasm_content, hbc)
     for i in range(len(func_asms)):
         func = read_func(func_asms, i)
         hbc.setFunction(i, func)
 
-        
     return hbc
 

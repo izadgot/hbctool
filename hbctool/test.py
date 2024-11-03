@@ -1,14 +1,12 @@
 import unittest
 from hbctool.util import *
-from hbctool.hbc.hbc76.test import *
-from hbctool.hbc.hbc74.test import *
-from hbctool.hbc.hbc62.test import *
-from hbctool.hbc.hbc59.test import *
+from hbctool.hbc.hbc90.test import *
 from hbctool import hbc as hbcl, hasm
 import pathlib
 import json
 
 basepath = pathlib.Path(__file__).parent.absolute()
+print(f"Basepath: {basepath}")
 
 class ByteIO:
     def __init__(self, v=b""):

@@ -9,10 +9,14 @@ basepath = pathlib.Path(__file__).parent.absolute()
 class TestHBC76(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestHBC76, self).__init__(*args, **kwargs)
-        self.hbc = hbcl.load(open(f"{basepath}/example/index.android.bundle", "rb"))
-        self.objdump = open(f"{basepath}/example/objdump.out", "r").read()
-        self.pretty = open(f"{basepath}/example/pretty.out", "r").read()
-        self.raw = open(f"{basepath}/example/raw.out", "r").read()
+        with open(basepath / "example" / "index.android.bundle", "rb") as f:
+            self.hbc = hbcl.load(f)
+        with open(basepath / "example" / "objdump.out", "r") as f:
+            self.objdump = f.read()
+        with open(basepath / "example" / "pretty.out", "r") as f:
+            self.pretty = f.read()
+        with open(basepath / "example" / "raw.out", "r") as f:
+            self.raw = f.read()
 
     def test_get_function(self):
         target_offsets = re.findall(r"([0-9a-f]+) \<_[0-9]+\>", self.objdump)
@@ -68,27 +72,24 @@ class TestHBC76(unittest.TestCase):
             self.assertEqual(assemble(disassemble(bc)), bc)
 class TestParser76(unittest.TestCase):
     def test_hbc(self):
-        f = open(f"{basepath}/example/index.android.bundle", "rb")
-        hbc = hbcl.load(f)
-        f.close()
-        f = open("/tmp/hbctool_test.android.bundle", "wb")
-        hbcl.dump(hbc, f)
-        f.close()
-
-        f = open("hbc/hbc76/example/index.android.bundle", "rb")
-        a = f.read()
-        f.close()
-        f = open("/tmp/hbctool_test.android.bundle", "rb")
-        b = f.read()
-        f.close()
+        with open(basepath / "example" / "index.android.bundle", "rb") as f:
+            hbc = hbcl.load(f)
+        tmp_path = pathlib.Path("/tmp") / "hbctool_test.android.bundle"
+        with open(tmp_path, "wb") as f:
+            hbcl.dump(hbc, f)
+        with open(basepath / "example" / "index.android.bundle", "rb") as f:
+            a = f.read()
+        with open(tmp_path, "rb") as f:
+            b = f.read()
 
         self.assertEqual(a, b)
 
     def test_hasm(self):
-        f = open(f"{basepath}/example/index.android.bundle", "rb")
-        a = hbcl.load(f)
-        f.close()
-        hasm.dump(a, "/tmp/hbctool_test", force=True)
-        b = hasm.load("/tmp/hbctool_test")
+        with open(basepath / "example" / "index.android.bundle", "rb") as f:
+            a = hbcl.load(f)
+
+        tmp_path = pathlib.Path("/tmp") / "hbctool_test"
+        hasm.dump(a, tmp_path, force=True)
+        b = hasm.load(tmp_path)
 
         self.assertEqual(json.dumps(a.getObj()), json.dumps(b.getObj()))

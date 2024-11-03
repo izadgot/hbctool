@@ -26,12 +26,15 @@ Examples:
 """
 from docopt import docopt
 from hbctool import metadata, hbc, hasm
+import pathlib
 
 def disasm(hbcfile, hasmpath):
+    hbcfile = pathlib.Path(hbcfile)
+    hasmpath = pathlib.Path(hasmpath)
+    
     print(f"[*] Disassemble '{hbcfile}' to '{hasmpath}' path")
-    f = open(hbcfile, "rb")
-    hbco = hbc.load(f)
-    f.close()
+    with open(hbcfile, "rb") as f:
+        hbco = hbc.load(f)
 
     header = hbco.getHeader()
     sourceHash = bytes(header["sourceHash"]).hex()
@@ -42,6 +45,9 @@ def disasm(hbcfile, hasmpath):
     print(f"[*] Done")
 
 def asm(hasmpath, hbcfile):
+    hasmpath = pathlib.Path(hasmpath)
+    hbcfile = pathlib.Path(hbcfile)
+    
     print(f"[*] Assemble '{hasmpath}' to '{hbcfile}' path")
     hbco = hasm.load(hasmpath)
 
@@ -50,9 +56,8 @@ def asm(hasmpath, hbcfile):
     version = header["version"]
     print(f"[*] Hermes Bytecode [ Source Hash: {sourceHash}, HBC Version: {version} ]")
 
-    f = open(hbcfile, "wb")
-    hbc.dump(hbco, f)
-    f.close()
+    with open(hbcfile, "wb") as f:
+        hbc.dump(hbco, f)
     print(f"[*] Done")
 
 def main():

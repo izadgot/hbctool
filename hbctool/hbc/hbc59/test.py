@@ -10,10 +10,10 @@ basepath = pathlib.Path(__file__).parent.absolute()
 class TestHBC59(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestHBC59, self).__init__(*args, **kwargs)
-        self.hbc = hbcl.load(open(f"{basepath}/example/index.android.bundle", "rb"))
-        # self.objdump = open(f"{basepath}/example/objdump.out", "r").read()
-        self.pretty = open(f"{basepath}/example/pretty.out", "r").read()
-        self.raw = open(f"{basepath}/example/raw.out", "r").read()
+        self.hbc = hbcl.load(open(basepath / "example" / "index.android.bundle", "rb"))
+        # self.objdump = open(basepath / "example" / "objdump.out", "r").read()
+        self.pretty = open(basepath / "example" / "pretty.out", "r").read()
+        self.raw = open(basepath / "example" / "raw.out", "r").read()
 
     def test_get_function(self):
         # hbcdump version 59 cannot fetch
@@ -70,29 +70,34 @@ class TestHBC59(unittest.TestCase):
             _, _, _, _, bc, _ = self.hbc.getFunction(i, disasm=False)
 
             self.assertEqual(assemble(disassemble(bc)), bc)
+            
 class TestParser59(unittest.TestCase):
     def test_hbc(self):
-        f = open(f"{basepath}/example/index.android.bundle", "rb")
-        hbc = hbcl.load(f)
-        f.close()
-        f = open("/tmp/hbctool_test.android.bundle", "wb")
-        hbcl.dump(hbc, f)
-        f.close()
+        # Load the original HBC file
+        with open(basepath / "example" / "index.android.bundle", "rb") as f:
+            hbc = hbcl.load(f)
 
-        f = open("hbc/hbc59/example/index.android.bundle", "rb")
-        a = f.read()
-        f.close()
-        f = open("/tmp/hbctool_test.android.bundle", "rb")
-        b = f.read()
-        f.close()
+        # Dump the loaded HBC to a temporary file
+        with open(pathlib.Path("/tmp") / "hbctool_test.android.bundle", "wb") as f:
+            hbcl.dump(hbc, f)
+
+        # Read the original file and the dumped file for comparison
+        with open(basepath / "example" / "index.android.bundle", "rb") as f:
+            a = f.read()
+
+        with open(pathlib.Path("/tmp") / "hbctool_test.android.bundle", "rb") as f:
+            b = f.read()
 
         self.assertEqual(a, b)
 
     def test_hasm(self):
-        f = open(f"{basepath}/example/index.android.bundle", "rb")
-        a = hbcl.load(f)
-        f.close()
-        hasm.dump(a, "/tmp/hbctool_test", force=True)
-        b = hasm.load("/tmp/hbctool_test")
+        # Load the original HBC file
+        with open(basepath / "example" / "index.android.bundle", "rb") as f:
+            a = hbcl.load(f)
+
+        # Dump the loaded HBC to an assembly file and reload it
+        tmp_path = pathlib.Path("/tmp") / "hbctool_test"
+        hasm.dump(a, tmp_path, force=True)
+        b = hasm.load(tmp_path)
 
         self.assertEqual(json.dumps(a.getObj()), json.dumps(b.getObj()))
